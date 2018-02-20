@@ -20,6 +20,8 @@ size_t epsi_start =  N * 5;
 size_t delta_start = N * 6;
 size_t a_start =     N * 7 - 1; // Only N - 1 delta entries
 
+double ref_v = 50;
+
 // This value assumes the model presented in the classroom is used.
 //
 // It was obtained by measuring the radius formed by running the vehicle in the
@@ -82,16 +84,6 @@ class FG_eval {
     fg[1 + epsi_start] = vars[epsi_start];
 
     for (int t = 1; t < N ; t++) {
-      // psi, v, delta at time t
-      AD<double> psi0 = vars[psi_start + t - 1];
-      AD<double> v0 = vars[v_start + t - 1];
-      AD<double> delta0 = vars[delta_start + t - 1];
-      
-      // psi at time t+1
-      AD<double> psi1 = vars[psi_start + t];
-
-      // how psi changes
-      fg[1 + psi_start + t] = psi1 - (psi0 + v0 * delta0 / Lf * dt);
 
       // The state at time t+1 .
       AD<double> x1 = vars[x_start + t];
@@ -133,8 +125,9 @@ class FG_eval {
       fg[1 + cte_start + t] = cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
       fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
     }
-  };
-
+  }
+};
+  
 //
 // MPC class definition implementation.
 //
@@ -143,7 +136,6 @@ MPC::~MPC() {}
 
 vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   bool ok = true;
-  size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
   // TODO: Set the number of model variables (includes both states and inputs).
