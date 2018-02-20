@@ -107,7 +107,7 @@ int main() {
 	  // Translate waypoints to vehicle coordinates
 	  for (int i = 0; i < ptsx.size(); ++i) {
 	    waypointsx(i) = (ptsx[i] - px) * cos(-psi) - (ptsy[i] - py) * sin(-psi);
-	    waypointsx(i) = (ptsx[i] - px) * sin(-psi) - (ptsy[i] - py) * cos(-psi);
+	    waypointsy(i) = (ptsx[i] - px) * sin(-psi) + (ptsy[i] - py) * cos(-psi);
 	  }
 
 	  // Fit waypoints with a third degree polynomial
@@ -122,13 +122,15 @@ int main() {
 	  
 	  //Create state
 	  Eigen::VectorXd state(6);
-	  state << px, py, psi, v, cte, epsi;
+	  state << 0, 0, 0, v, cte, epsi;
 
 	  auto solution = mpc.Solve(state, coeffs);
 
 	  // steervalue is in radians, convert to -1 to +1
 	  steer_value = solution[0] / (deg2rad(25)); // Limits are -25 degrees and 25 degrees
 	  throttle_value = solution[1];
+
+	  cout << steer_value << " " << throttle_value << endl;
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
