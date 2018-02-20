@@ -143,6 +143,16 @@ int main() {
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
+	  // In solution there are 2 actuation values, the rest are x, y
+	  // so we can find N by dividing the size of the x, y portion of
+	  // solution by 2
+	  size_t pts = (solution.size() - 2) / 2;
+	 
+	  for (size_t t = 2; t < pts / 2; ++t) {
+	    mpc_x_vals.push_back(solution[t]);
+	    mpc_y_vals.push_back(solution[t + pts]);
+	  }
+	  
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
 

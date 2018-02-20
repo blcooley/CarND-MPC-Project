@@ -154,7 +154,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars[i] = 0;
   }
 
-  cout << "It's still good setting initial values" << endl;
   // Set initial state values
   vars[x_start] =    state[0];
   vars[y_start] =    state[1];
@@ -163,7 +162,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   vars[cte_start] =  state[4];
   vars[epsi_start] = state[5];
 
-  cout << "It's still good setting lower bounds" << endl;
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
   // TODO: Set lower and upper limits for variables.
@@ -172,21 +170,18 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars_upperbound[i] =  10000000000.0;
   }
 
-  cout << "It's still good setting steering" << endl;
   // Bounds for steering are -25 degrees to 25 degrees => -0.43633 to 0.43633 radians
   for(size_t i = delta_start; i < a_start; i++) {
     vars_lowerbound[i] = -0.43633;
     vars_upperbound[i] =  0.43633;
   }
 
-  cout << "It's still good setting throttle" << endl;
   // Throttle between -1 and 1
   for(size_t i = a_start; i < n_vars; i++) {
     vars_lowerbound[i] = -1;
     vars_upperbound[i] =  1;
   }
 
-  cout << "It's still good setting constraints" << endl;
   // Lower and upper limits for the constraints
   // Should be 0 besides initial state.
   Dvector constraints_lowerbound(n_constraints);
@@ -210,7 +205,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   constraints_lowerbound[epsi_start] = state[5];
   constraints_upperbound[epsi_start] = state[5];
 
-  cout << "It's still good before fg_eval" << endl;
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
 
@@ -255,7 +249,11 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   std::vector<double> result {solution.x[delta_start], solution.x[a_start]};
   for (size_t t = 0; t < N - 1; ++t) {
     result.push_back(solution.x[x_start + t + 1]);
+  }
+
+  for (size_t t = 0; t < N - 1; ++t) {
     result.push_back(solution.x[y_start + t + 1]);
   }
+
   return result;
 }
