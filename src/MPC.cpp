@@ -105,8 +105,8 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
  
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0;
-      AD<double> psides0 = CppAD::atan(coeffs[1]);
+      AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2]* CppAD::pow(x0, 2) + coeffs[3]* CppAD::pow(x0, 3);
+      AD<double> psides0 = CppAD::atan(coeffs[1]+2*coeffs[2]*x0 + 3 * coeffs[3]*CppAD::pow(x0, 2));
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -154,6 +154,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars[i] = 0;
   }
 
+  cout << "It's still good setting initial values" << endl;
   // Set initial state values
   vars[x_start] =    state[0];
   vars[y_start] =    state[1];
@@ -162,6 +163,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   vars[cte_start] =  state[4];
   vars[epsi_start] = state[5];
 
+  cout << "It's still good setting lower bounds" << endl;
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
   // TODO: Set lower and upper limits for variables.
@@ -170,18 +172,21 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars_upperbound[i] =  10000000000.0;
   }
 
+  cout << "It's still good setting steering" << endl;
   // Bounds for steering are -25 degrees to 25 degrees => -0.43633 to 0.43633 radians
   for(size_t i = delta_start; i < a_start; i++) {
     vars_lowerbound[i] = -0.43633;
     vars_upperbound[i] =  0.43633;
   }
 
+  cout << "It's still good setting throttle" << endl;
   // Throttle between -1 and 1
   for(size_t i = a_start; i < n_vars; i++) {
     vars_lowerbound[i] = -1;
     vars_upperbound[i] =  1;
   }
 
+  cout << "It's still good setting constraints" << endl;
   // Lower and upper limits for the constraints
   // Should be 0 besides initial state.
   Dvector constraints_lowerbound(n_constraints);
@@ -201,10 +206,11 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   constraints_lowerbound[v_start] =    state[3];
   constraints_upperbound[v_start] =    state[3];
   constraints_lowerbound[cte_start] =  state[4];
-  constraints_upperbound[cte_start] =  state[5];
-  constraints_lowerbound[epsi_start] = state[6];
-  constraints_upperbound[epsi_start] = state[6];
+  constraints_upperbound[cte_start] =  state[4];
+  constraints_lowerbound[epsi_start] = state[5];
+  constraints_upperbound[epsi_start] = state[5];
 
+  cout << "It's still good before fg_eval" << endl;
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
 

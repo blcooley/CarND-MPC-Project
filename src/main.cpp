@@ -101,19 +101,35 @@ int main() {
           double steer_value;
           double throttle_value;
 
+	  Eigen::VectorXd waypointsx(ptsx.size());
+	  Eigen::VectorXd waypointsy(ptsy.size());
+
+	  cout << "It's still good before computing waypoints" << endl;
+	  for (int i = 0; i < ptsx.size(); ++i) {
+	    waypointsx(i) = (ptsx[i] - px) * cos(-psi) - (ptsy[i] - py) * sin(-psi);
+	    waypointsx(i) = (ptsx[i] - px) * sin(-psi) - (ptsy[i] - py) * cos(-psi);
+	  }
+
+	  cout << "It's still good before fitting polynomial" << endl;
+	  Eigen::VectorXd coeffs(3);
+	  coeffs = polyfit(waypointsx, waypointsy, 3);
+
+	  cout << "It's still good before computing cte" << endl;	  
 	  // Compute cte
-
+	  auto cte = polyeval(coeffs, 0);
+	  
+	  cout << "It's still good before computing epsi" << endl;
 	  // Compute epsi
-
+	  auto epsi = -atan(coeffs[1]);
+	  
 	  //Create state
 	  Eigen::VectorXd state(6);
-	  state << px, py, psi, v, 0, 0;
+	  state << px, py, psi, v, cte, epsi;
 
-	  Eigen::VectorXd coeffs(2);
-	  coeffs << 1.0, 1.0;
-	  
+	  cout << "It's still good before solving" << endl;
 	  auto solution = mpc.Solve(state, coeffs);
 
+	  cout << "It's still good before computing steering" << endl;
 	  // steervalue is in radians, convert to -1 to +1
 	  steer_value = solution[0] / (deg2rad(25)); // Limits are -25 degrees and 25 degrees
 	  throttle_value = solution[1];
