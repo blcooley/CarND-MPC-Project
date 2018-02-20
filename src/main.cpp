@@ -101,6 +101,23 @@ int main() {
           double steer_value;
           double throttle_value;
 
+	  // Compute cte
+
+	  // Compute epsi
+
+	  //Create state
+	  Eigen::VectorXd state(6);
+	  state << px, py, psi, v, 0, 0;
+
+	  Eigen::VectorXd coeffs(2);
+	  coeffs << 1.0, 1.0;
+	  
+	  auto solution = mpc.Solve(state, coeffs);
+
+	  // steervalue is in radians, convert to -1 to +1
+	  steer_value = solution[0] / (deg2rad(25)); // Limits are -25 degrees and 25 degrees
+	  throttle_value = solution[1];
+
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
@@ -124,8 +141,8 @@ int main() {
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
 
-          msgJson["next_x"] = next_x_vals;
-          msgJson["next_y"] = next_y_vals;
+          msgJson["next_x"] = ptsx;
+          msgJson["next_y"] = ptsy;
 
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";

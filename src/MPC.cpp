@@ -170,10 +170,10 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars_upperbound[i] =  10000000000.0;
   }
 
-  // What are bounds for steering?
+  // Bounds for steering are -25 degrees to 25 degrees => -0.43633 to 0.43633 radians
   for(size_t i = delta_start; i < a_start; i++) {
-    vars_lowerbound[i] = -0.5;
-    vars_upperbound[i] =  0.5;
+    vars_lowerbound[i] = -0.43633;
+    vars_upperbound[i] =  0.43633;
   }
 
   // Throttle between -1 and 1
