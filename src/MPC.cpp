@@ -153,7 +153,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // 4 * 10 + 2 * 9
   size_t n_vars = N * 6 + (N - 1) * 2;
   // TODO: Set the number of constraints
-  size_t n_constraints = 0;
+  size_t n_constraints = N * 6;
 
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
@@ -162,18 +162,56 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars[i] = 0;
   }
 
+  // Set initial state values
+  vars[x_start] =    state[0];
+  vars[y_start] =    state[1];
+  vars[psi_start] =  state[2];
+  vars[v_start] =    state[3];
+  vars[cte_start] =  state[4];
+  vars[epsi_start] = state[5];
+
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
   // TODO: Set lower and upper limits for variables.
+  for (size_t i = 0; i < delta_start; i++) {
+    vars_lowerbound[i] = -10000000000.0;
+    vars_upperbound[i] =  10000000000.0;
+  }
+
+  // What are bounds for steering?
+  for(size_t i = delta_start; i < a_start; i++) {
+    vars_lowerbound[i] = -0.5;
+    vars_upperbound[i] =  0.5;
+  }
+
+  // Throttle between -1 and 1
+  for(size_t i = a_start; i < n_vars; i++) {
+    vars_lowerbound[i] = -1;
+    vars_upperbound[i] =  1;
+  }
 
   // Lower and upper limits for the constraints
   // Should be 0 besides initial state.
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (int i = 0; i < n_constraints; i++) {
+  for (size_t i = 0; i < n_constraints; i++) {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
+
+  // Constrain initial values to the state values
+  constraints_lowerbound[x_start] =    state[0];
+  constraints_upperbound[x_start] =    state[0];
+  constraints_lowerbound[y_start] =    state[1];
+  constraints_upperbound[y_start] =    state[1];
+  constraints_lowerbound[psi_start] =  state[2];
+  constraints_upperbound[psi_start] =  state[2];
+  constraints_lowerbound[v_start] =    state[3];
+  constraints_upperbound[v_start] =    state[3];
+  constraints_lowerbound[cte_start] =  state[4];
+  constraints_upperbound[cte_start] =  state[5];
+  constraints_lowerbound[epsi_start] = state[6];
+  constraints_upperbound[epsi_start] = state[6];
 
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
