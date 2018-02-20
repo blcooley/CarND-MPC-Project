@@ -104,21 +104,19 @@ int main() {
 	  Eigen::VectorXd waypointsx(ptsx.size());
 	  Eigen::VectorXd waypointsy(ptsy.size());
 
-	  cout << "It's still good before computing waypoints" << endl;
+	  // Translate waypoints to vehicle coordinates
 	  for (int i = 0; i < ptsx.size(); ++i) {
 	    waypointsx(i) = (ptsx[i] - px) * cos(-psi) - (ptsy[i] - py) * sin(-psi);
 	    waypointsx(i) = (ptsx[i] - px) * sin(-psi) - (ptsy[i] - py) * cos(-psi);
 	  }
 
-	  cout << "It's still good before fitting polynomial" << endl;
+	  // Fit waypoints with a third degree polynomial
 	  Eigen::VectorXd coeffs(3);
 	  coeffs = polyfit(waypointsx, waypointsy, 3);
 
-	  cout << "It's still good before computing cte" << endl;	  
 	  // Compute cte
 	  auto cte = polyeval(coeffs, 0);
 	  
-	  cout << "It's still good before computing epsi" << endl;
 	  // Compute epsi
 	  auto epsi = -atan(coeffs[1]);
 	  
@@ -126,10 +124,8 @@ int main() {
 	  Eigen::VectorXd state(6);
 	  state << px, py, psi, v, cte, epsi;
 
-	  cout << "It's still good before solving" << endl;
 	  auto solution = mpc.Solve(state, coeffs);
 
-	  cout << "It's still good before computing steering" << endl;
 	  // steervalue is in radians, convert to -1 to +1
 	  steer_value = solution[0] / (deg2rad(25)); // Limits are -25 degrees and 25 degrees
 	  throttle_value = solution[1];
@@ -154,11 +150,16 @@ int main() {
           vector<double> next_x_vals;
           vector<double> next_y_vals;
 
+	  for (int i = 0; i < waypointsx.size(); ++i) {
+	    next_x_vals.push_back(waypointsx[i]);
+	    next_y_vals.push_back(waypointsy[i]);
+	  }
+
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
 
-          msgJson["next_x"] = ptsx;
-          msgJson["next_y"] = ptsy;
+          msgJson["next_x"] = next_x_vals;
+          msgJson["next_y"] = next_y_vals;
 
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
